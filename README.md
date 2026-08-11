@@ -49,10 +49,22 @@ This installs four files, all of which are needed:
 | `/usr/share/dbus-1/services/org.freedesktop.impl.portal.desktop.hypr-remote.service` | lets D-Bus start the portal on demand |
 | `/usr/lib/systemd/user/xdg-desktop-portal-hypr-remote.service` | systemd unit used by the D-Bus activation |
 
-## Configuration
+Then restart the portal frontend:
 
-Tell xdg-desktop-portal to route `RemoteDesktop` to this backend. Create
-`~/.config/xdg-desktop-portal/hyprland-portals.conf`:
+```bash
+systemctl --user restart xdg-desktop-portal.service
+```
+
+That is all: `hypr-remote.portal` declares `UseIn=hyprland`, so
+xdg-desktop-portal routes `RemoteDesktop` here on its own.
+
+## Configuration (only if you already have a portals.conf)
+
+A `portals.conf` takes precedence over the `UseIn` key, so if you have your own
+`~/.config/xdg-desktop-portal/hyprland-portals.conf` — a common thing to do to
+force the GTK file picker, for instance — its `default=` line also covers
+`RemoteDesktop`, and requests will fail because neither `hyprland` nor `gtk`
+implements it. Add an explicit line for this backend:
 
 ```ini
 [preferred]
@@ -63,11 +75,11 @@ org.freedesktop.impl.portal.RemoteDesktop=hypr-remote
 The file name must match your desktop, lowercased — with
 `XDG_CURRENT_DESKTOP=Hyprland` it is `hyprland-portals.conf`.
 
-Then restart the portal frontend:
-
-```bash
-systemctl --user restart xdg-desktop-portal.service
-```
+Note that `UseIn` is deprecated in xdg-desktop-portal. It still works and is
+what keeps installation configuration-free today, but should it ever be dropped,
+the snippet above becomes mandatory. The system-wide default that ships with
+Hyprland (`/usr/share/xdg-desktop-portal/hyprland-portals.conf`) cannot be
+extended by this package, since that file belongs to the `hyprland` package.
 
 ## Verifying it works
 
